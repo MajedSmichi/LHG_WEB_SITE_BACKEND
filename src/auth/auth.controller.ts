@@ -1,9 +1,8 @@
-import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Request, UseGuards, Body, Param } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { LocalAuthGuard } from './guards/local-auth.guard.js';
 import type { RequestWithUser } from './interfaces/request-with-user.interface.js';
-import { Body } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service.js';
 
@@ -40,5 +39,19 @@ export class AuthController {
   @Get('profile')
   profile(@Request() req: RequestWithUser): { user: RequestWithUser['user'] } {
     return { user: req.user };
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Post('reset-password/:token')
+  async resetPassword(
+    @Request() req: any,
+    @Body('password') password: string,
+  ) {
+    const token = req.params.token;
+    return this.authService.resetPassword(token, password);
   }
 }
