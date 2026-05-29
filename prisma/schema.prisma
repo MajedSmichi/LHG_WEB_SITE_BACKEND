@@ -1,17 +1,15 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
-
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
+
+// Datasource configuration is now in prisma.config.ts (Prisma 7+)
 
 model User {
   id           Int     @id @default(autoincrement())
@@ -20,4 +18,109 @@ model User {
   role         String  @default("user")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  conversations Conversation[]
+}
+
+model Reservations {
+  id           Int     @id @default(autoincrement())
+  brand  String?
+  resort  String?
+  resort_name  String?
+  booking_date  String?
+  resort_countr_name  String?
+  customer_country  String?
+  reservation_status  String?
+  arrival_date  String?
+  departure_date  String?
+  duree_sejour  Int?
+  nb_booking  Int?
+  adult_par_nuit  Int?
+  kid_par_nuit  Int?
+  rooms_sold  Int?
+  resv_revenue_in_euro  Float?
+  resv_revenue_total_in_euro  Float?
+}
+
+model Webhelp {
+  id           Int     @id @default(autoincrement())
+  nom_projet  String?
+  nom_vdn  String?
+  vdn__id_  Float?
+  zone_geographique  String?
+  nom_activite  String?
+  acw  Float?
+  mea  Float?
+  duree_totale_appel  Float?
+  date_de_debut_et_heure_en_paris_time  String?
+  date_de_fin_et_heure_en_paris_time  String?
+  duree_de_comm  Float?
+  libelle_code_appel  String?
+  ringtime  Float?
+  queuetime  Float?
+  raccroche_agent  Float?
+  code_appel  Float?
+  held  Float?
+  interruptdel  Float?
+  login_agent  Float?
+  numero_compose  Float?
+}
+
+model Colt_file {
+  id           Int     @id @default(autoincrement())
+  point_dentree  Float?
+  session_dappel  String?
+  appelant  Float?
+  type_dappel  String?
+  numero_cible  Float?
+  svi_seulement  Float?
+  demande_de_mise_en_relation  Float?
+  abandon_dans_lattente  Float?
+  appel_dissuade  Float?
+  resultat  String?
+  code  Float?
+  occupe  Float?
+  non_reponse  Float?
+  identifiant_de_lappel  String?
+  date_colt_file  String?
+  heure_colt_file  String?
+  duree_globale__secondes_  Int?
+  duree_svi__secondes_  Int?
+  duree_dattente__secondes_  Int?
+  duree_de_contact__secondes_  Int?
+  duree_de_mise_en_garde__secondes_  Int?
+  duree_svi_appele_post_contact__secondes_  Int?
+  annee  Float?
+  mois  Float?
+  jour  Float?
+  heure  Float?
+  minute  Float?
+  seconde  Float?
+}
+
+model Conversation {
+  id                 Int     @id @default(autoincrement())
+  userId             Int
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title              String  @default("Nouvelle conversation")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  questionCount      Int     @default(0)
+  isPinned           Boolean @default(false)
+  messages           ConversationMessage[]
+
+  @@index([userId])
+}
+
+model ConversationMessage {
+  id                 Int     @id @default(autoincrement())
+  conversationId     Int
+  conversation       Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role               String  // 'user' or 'assistant'
+  question           String?
+  sqlGenerated       String?
+  data               Json?   // Raw results
+  response           String
+  timestamp          DateTime @default(now())
+
+  @@index([conversationId])
 }
