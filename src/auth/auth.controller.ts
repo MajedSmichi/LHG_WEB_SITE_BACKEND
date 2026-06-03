@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Request, UseGuards, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Request, UseGuards, Body, Param, ConflictException } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { LocalAuthGuard } from './guards/local-auth.guard.js';
@@ -14,20 +14,21 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
-  @Post('register')
-  async register(
-    @Body('email') email: string,
-    @Body('password') password: string,
-    @Body('role') role?: string,
-  ) {
-    const existing = await this.usersService.findByEmail(email);
-    if (existing) {
-      return { message: 'Email already exists' };
-    }
-    const passwordHash = await bcrypt.hash(password, 10);
-    const user = await this.usersService.createUser(email, passwordHash, role);
-    return { id: user.id, email: user.email, role: user.role };
+@Post('register')
+async register(
+  @Body('email') email: string,
+  @Body('password') password: string,
+  @Body('role') role?: string,
+) {
+  const existing = await this.usersService.findByEmail(email);
+  if (existing) {
+    throw new ConflictException('Email already exists');
   }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const user = await this.usersService.createUser(email, passwordHash, role);
+  return { id: user.id, email: user.email, role: user.role };
+}
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
