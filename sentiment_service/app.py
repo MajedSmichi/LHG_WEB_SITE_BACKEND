@@ -35,25 +35,32 @@ SUMMARY_CACHE = None
 LAST_CACHE_TS = 0
 CACHE_TTL = 300  # seconds
 
+# mots positifs connus (retirez 'accueil' si vous ne le voulez pas comme signal positif)
 POSITIVE_WORDS = {
-    "excellent", "parfait", "super", "propre", "confortable", "agréable", "accueil",
-    "gentil", "magnifique", "bon", "bien", "qualité", "spacieux", "calme", "rapide",
-    "recommande", "satisfait", "top", "impeccable", "sympathique", "efficace"
+    "excellent", "parfait", "super", "propre", "confortable", "agréable",
+    "gentil", "magnifique", "bon", "bien", "qualité", "spacieux", "calme",
+    "rapide", "recommande", "satisfait", "top", "impeccable", "sympathique", "efficace"
 }
 
 NEGATIVE_WORDS = {
     "mauvais", "sale", "bruyant", "lent", "déçu", "décevant", "problème", "retard",
-    "froid", "inconfortable", "vieillot", "cher", "désagréable", "pire", "nul", "fuite",
-    "cassé", "incident", "insalubre", "humide", "incohérent", "amateur"
+    "froid", "inconfortable", "vieillot", "cher", "désagréable", "pire", "nul",
+    "fuite", "cassé", "incident", "insalubre", "humide", "incohérent", "amateur"
+}
+
+# mots neutres / domaine à ignorer dans les keywords
+NEUTRAL_WORDS = {
+    "nuit", "nuits", "séjour", "sejour", "chambre", "hotel", "hôtel", "hébergement",
+    "prix", "tarif", "reservation", "réservation", "personnel", "jour", "jours",
+    "assez", "très", "bien", "bon"  # retirez si vous voulez garder 'bien'/'bon' sentimentiels
 }
 
 STOPWORDS = {
     "le", "la", "les", "de", "des", "du", "un", "une", "et", "en", "dans", "pour",
     "avec", "sur", "pas", "que", "qui", "au", "aux", "ce", "cette", "ces", "se",
-    "sa", "son", "ses", "est", "sont", "été", "etre", "être", "mais", "plus", "très",
+    "sa", "son", "ses", "est", "sont", "été", "etre", "être", "mais", "plus",
     "tres", "nous", "vous", "ils", "elles", "je", "tu", "il", "elle", "on", "ne"
 }
-
 
 def note_to_sentiment(note: float) -> str:
     if note <= 4:
@@ -72,7 +79,7 @@ def clean_text(text: str) -> str:
 
 def tokenize(text: str) -> list[str]:
     cleaned = clean_text(text)
-    tokens = [token for token in cleaned.split() if len(token) > 2 and token not in STOPWORDS]
+    tokens = [token for token in cleaned.split() if len(token) > 2 and token not in STOPWORDS and token not in NEUTRAL_WORDS]
     return tokens
 
 
@@ -81,6 +88,8 @@ def top_keywords_from_texts(texts: pd.Series, sentiment_label: str, limit: int =
     for text in texts.fillna(""):
         tokens = tokenize(text)
         for token in tokens:
+            if token in NEUTRAL_WORDS:
+                continue
             if sentiment_label == "positif" and token in POSITIVE_WORDS:
                 counter[token] += 3
             elif sentiment_label == "negatif" and token in NEGATIVE_WORDS:
