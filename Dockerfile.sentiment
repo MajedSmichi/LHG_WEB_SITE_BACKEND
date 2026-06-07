@@ -5,5 +5,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY sentiment_service/app.py ./
 COPY scripts/models/sentiment_model.joblib ./models/
 COPY scripts/data/processed/nlp_processed.csv ./data/processed/
+ENV MODEL_PATH=/app/models/sentiment_model.joblib
+ENV DATA_PATH=/app/data/processed/nlp_processed.csv
 EXPOSE 8000
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
