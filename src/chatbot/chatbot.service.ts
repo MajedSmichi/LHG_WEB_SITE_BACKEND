@@ -6,7 +6,7 @@ import axios from 'axios';
 
 @Injectable()
 export class ChatbotService {
-  private readonly OLLAMA_URL = 'http://localhost:11434/api/generate';
+  private readonly OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434/api/generate';
   private readonly MODEL = 'neural-chat';
 
   constructor(

@@ -12,7 +12,8 @@ export class MailService {
   });
 
   async sendResetPasswordEmail(email: string, token: string): Promise<void> {
-    const resetLink = `http://localhost:4200/reset-password/${token}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://lhgstream.duckdns.org';
+    const resetLink = `${frontendUrl}/reset-password/${token}`;
 
     await this.transporter.sendMail({
       from: process.env.EMAIL_USER || 'noreply@lhg.com',
