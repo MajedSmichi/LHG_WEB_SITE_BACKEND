@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel
 from pathlib import Path
@@ -28,8 +29,8 @@ app.add_middleware(
 )
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-DATA_PATH = BASE_DIR / "scripts" / "data" / "processed" / "nlp_processed.csv"
-MODEL_PATH = BASE_DIR / "scripts" / "models" / "sentiment_model.joblib"
+DATA_PATH = Path(os.environ.get("DATA_PATH", str(BASE_DIR / "scripts" / "data" / "processed" / "nlp_processed.csv")))
+MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(BASE_DIR / "scripts" / "models" / "sentiment_model.joblib")))
 
 # load data & model
 df = pd.read_csv(DATA_PATH)
