@@ -7,9 +7,10 @@ import { PrismaModule } from './prisma.module.js';
 import { SentimentModule } from './sentiment/sentiment.module.js';
 import { ChatbotModule } from './chatbot/chatbot.module.js';
 import { ConversationsModule } from './conversations/conversations.module.js';
+import { PowerbiModule } from './powerbi/powerbi.module';
 
 @Module({
-  imports: [AuthModule, MailModule, PrismaModule, ChatbotModule, ConversationsModule, SentimentModule],
+  imports: [AuthModule, MailModule, PrismaModule, ChatbotModule, ConversationsModule, SentimentModule,PowerbiModule],
   controllers: [AppController],
   providers: [AppService],
 })

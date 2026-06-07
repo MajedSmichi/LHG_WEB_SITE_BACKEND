@@ -7,7 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service.js';
 
 
-@Controller('auth')
+@Controller('api/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,

@@ -16,7 +16,12 @@ app = FastAPI(title="Sentiment Service", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:4200",
+        "http://localhost:3000",
+        "http://3.211.174.1",
+        "https://lhgstream.duckdns.org"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -320,3 +325,7 @@ def summary():
     LAST_CACHE_TS = now
 
     return result
+print("MODEL PATH:", MODEL_PATH)
+print("LOADING MODEL...")
+model = joblib.load(MODEL_PATH)
+print("MODEL LOADED:", type(model))

@@ -1,0 +1,24 @@
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+import joblib
+
+X = [
+    "great hotel",
+    "bad service",
+    "clean room",
+    "dirty bathroom",
+    "excellent experience",
+    "terrible stay"
+]
+
+y = [1, 0, 1, 0, 1, 0]
+
+model = Pipeline([
+    ("tfidf", TfidfVectorizer()),
+    ("clf", LogisticRegression())
+])
+
+model.fit(X, y)
+
+joblib.dump(model, "model.pkl")

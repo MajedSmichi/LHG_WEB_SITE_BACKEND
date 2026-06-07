@@ -1,3 +1,4 @@
+
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import { ConversationsService } from '../conversations/conversations.service.js';
@@ -101,7 +102,7 @@ TABLE webhelp (call center - appels - MAIN TABLE):
   - duree_totale_appel: Durée en secondes
   - zone_geographique: Zone
   - date_de_debut_et_heure_en_paris_time: DateTime
-  
+
 
 TABLE colt_file (detailed call info - only use if question mentions "transfert" or "resultat" specifically):
   - type_dappel: Type (Entrant, Sortant, Transfert)
@@ -174,41 +175,43 @@ Return ONLY SQL (no explanation, no backticks):`;
           model: this.MODEL,
           prompt,
           stream: false,
-          temperature: 0.05,
+          temperature: 0,
+          num_predict: 120,
+          keep_alive: '30m',
         },
-        { timeout: 120000 }
+        { timeout: 300000 }
       );
 
       let sql = response.data.response.trim();
-      
+
       // Extract from backticks
       const match = sql.match(/```[\w]*\n?([\s\S]*?)\n?```/);
       if (match) {
         sql = match[1].trim();
       }
-      
+
       // Remove all backticks and semicolons
       sql = sql.replace(/```/g, '').replace(/;/g, '').trim();
-      
+
       // Fix alias quotes: convert AS 'name' to AS name (remove problematic quotes)
       sql = sql.replace(/AS\s+'([^']+)'/g, 'AS $1');
-      
+
       // Take first line only
       sql = sql.split('\n')[0].trim();
-      
+
       // Clean up multiple spaces
       sql = sql.replace(/\s+/g, ' ').trim();
-      
+
       if (!sql.toUpperCase().startsWith('SELECT')) {
         console.error(`⚠️ Invalid response from LLM: ${response.data.response}`);
         return null;
       }
-      
+
       // Ensure LIMIT exists
       if (!sql.toUpperCase().includes('LIMIT')) {
         sql += ' LIMIT 100';
       }
-      
+
       return sql;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -265,7 +268,7 @@ Return ONLY SQL (no explanation, no backticks):`;
       }
 
       const result = await (this.prisma as any).$queryRawUnsafe(finalSql);
-      
+
       // Convertir BigInt en Number pour la sérialisation JSON
       return this.convertBigIntToNumber(result);
     } catch (error) {
@@ -280,20 +283,20 @@ Return ONLY SQL (no explanation, no backticks):`;
    */
   private convertBigIntToNumber(obj: any): any {
     if (obj === null || obj === undefined) return obj;
-    
+
     if (typeof obj === 'bigint') {
       return Number(obj);
     }
-    
+
     // Convertir les Decimals Prisma (structure: {s, e, d})
     if (typeof obj === 'object' && !Array.isArray(obj) && obj.s !== undefined && obj.e !== undefined && obj.d !== undefined) {
       return parseFloat(obj.toString());
     }
-    
+
     if (Array.isArray(obj)) {
       return obj.map(item => this.convertBigIntToNumber(item));
     }
-    
+
     if (typeof obj === 'object') {
       const converted: any = {};
       for (const [key, value] of Object.entries(obj)) {
@@ -301,7 +304,7 @@ Return ONLY SQL (no explanation, no backticks):`;
       }
       return converted;
     }
-    
+
     return obj;
   }
 
@@ -317,17 +320,17 @@ Return ONLY SQL (no explanation, no backticks):`;
     if (data.length === 1) {
       const row = data[0];
       const keys = Object.keys(row);
-      
+
       // Cas COUNT/SUM/AVG (un seul nombre)
       if (keys.length === 1) {
         const key = keys[0];
         let value = row[key];
-        
+
         // Arrondir si nombre décimal
         if (typeof value === 'number' && !Number.isInteger(value)) {
           value = Math.round(value * 100) / 100;
         }
-        
+
         if (key.toLowerCase().includes('count')) {
           return `Il y a ${value} résultat(s).`;
         } else if (key.toLowerCase().includes('total') || key.toLowerCase().includes('sum') || key.toLowerCase().includes('net')) {
@@ -339,7 +342,7 @@ Return ONLY SQL (no explanation, no backticks):`;
         }
         return `La valeur est ${value}.`;
       }
-      
+
       // Cas avec plusieurs colonnes
       return Object.entries(row)
         .map(([k, v]) => {
@@ -355,7 +358,7 @@ Return ONLY SQL (no explanation, no backticks):`;
     // Plusieurs lignes = liste
     const firstRow = data[0];
     const keys = Object.keys(firstRow);
-    
+
     // Cas TOP (2 colonnes: nom et count)
 // Cas TOP (2 colonnes: nom et count)
 if (keys.length === 2) {
@@ -364,13 +367,13 @@ if (keys.length === 2) {
     const lk = k.toLowerCase();
     return lk === 'count' || lk === 'total' || lk.includes('count') || lk.includes('total') || lk.includes('sum') || lk.includes('avg');
   });
-  
+
   if (!countKey) {
     countKey = keys[1]; // fallback: deuxième clé
   }
-  
+
   const nameKey = keys.find(k => k !== countKey) || keys[0];
-  
+
   const items = data
     .map(row => {
       let count = row[countKey];
@@ -380,7 +383,7 @@ if (keys.length === 2) {
       return `${row[nameKey]} (${count})`;
     })
     .join(', ');
-  
+
   return `Les principaux résultats sont: ${items}.`;
 }
 
