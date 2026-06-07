@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY sentiment_service/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY sentiment_service/app.py ./
+COPY scripts/models/sentiment_model.joblib ./models/
+COPY scripts/data/processed/nlp_processed.csv ./data/processed/
+EXPOSE 8000
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
