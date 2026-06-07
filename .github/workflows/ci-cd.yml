@@ -73,8 +73,59 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Create network if not exists
+            docker network create lhg-network 2>/dev/null || true
+
+            # Pull latest images
             docker pull majedsmichi/lhg-backend:latest
             docker pull majedsmichi/lhg-sentiment:latest
-            cd ~/LHG_WEB_SITE_BACKEND
-            docker-compose up -d backend sentiment
-            echo "✅ Backend deployed!"
+            docker pull postgres:17-alpine
+            docker pull ollama/ollama:latest
+
+            # Stop old containers
+            docker stop lhg-backend lhg-sentiment lhg-postgres lhg-ollama 2>/dev/null || true
+            docker rm lhg-backend lhg-sentiment lhg-postgres lhg-ollama 2>/dev/null || true
+
+            # Start PostgreSQL
+            docker run -d --name lhg-postgres \
+              --restart unless-stopped \
+              --network lhg-network \
+              -p 5432:5432 \
+              -v postgres_data:/var/lib/postgresql/data \
+              -e POSTGRES_USER=projet_lhg_user \
+              -e POSTGRES_PASSWORD=123456 \
+              -e POSTGRES_DB=projet_lhg_db \
+              postgres:17-alpine
+
+            # Start Ollama
+            docker run -d --name lhg-ollama \
+              --restart unless-stopped \
+              --network lhg-network \
+              -p 11434:11434 \
+              -v ollama_data:/root/.ollama \
+              ollama/ollama:latest
+
+            # Wait for postgres to be ready
+            sleep 10
+
+            # Start Sentiment service
+            docker run -d --name lhg-sentiment \
+              --restart unless-stopped \
+              --network lhg-network \
+              -p 8000:8000 \
+              majedsmichi/lhg-sentiment:latest
+
+            # Start Backend
+            docker run -d --name lhg-backend \
+              --restart unless-stopped \
+              --network lhg-network \
+              -p 3000:3000 \
+              -e DATABASE_URL="postgresql://projet_lhg_user:123456@lhg-postgres:5432/projet_lhg_db" \
+              -e JWT_SECRET="123456" \
+              -e FRONTEND_URL="https://lhgstream.duckdns.org" \
+              -e SENTIMENT_URL="http://lhg-sentiment:8000/predict" \
+              -e OLLAMA_URL="http://lhg-ollama:11434/api/generate" \
+              -e PORT=3000 \
+              majedsmichi/lhg-backend:latest
+
+            echo "✅ All services deployed!"
