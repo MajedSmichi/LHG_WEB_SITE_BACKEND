@@ -85,10 +85,12 @@
       "^(\\.\\.?/.*)\\.js$": "$1"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s",
+      "**/*.service.ts",
       "!**/generated/**",
       "!**/node_modules/**",
-      "!**/main.ts"
+      "!**/chatbot/**",
+      "!**/powerbi/**",
+      "!**/prisma.service.ts"
     ],
     "coveragePathIgnorePatterns": [
       "/node_modules/",

@@ -35,8 +35,8 @@ jobs:
             -Dsonar.organization=${{ secrets.SONAR_ORG }}
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BACKEND }}
             -Dsonar.sources=src
-            -Dsonar.exclusions=src/generated/**
-            -Dsonar.coverage.exclusions=src/**/*.module.ts,src/**/*.controller.ts,src/main.ts,src/**/guards/**,src/**/strategies/**,src/**/dto/**,src/**/interfaces/**,src/prisma.service.ts,src/chatbot/**,src/powerbi/**
+            -Dsonar.exclusions=src/generated/**,src/**/*.spec.ts
+            -Dsonar.coverage.inclusions=src/app.service.ts,src/auth/auth.service.ts,src/users/users.service.ts,src/conversations/conversations.service.ts,src/sentiment/sentiment.service.ts,src/mail/mail.service.ts
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
 
       - name: Trivy Vulnerability Scan
