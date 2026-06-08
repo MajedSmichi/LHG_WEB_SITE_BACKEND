@@ -81,8 +81,18 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "moduleNameMapper": {
+      "^(\\.\\.?/.*)\\.js$": "$1"
+    },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/generated/**",
+      "!**/node_modules/**",
+      "!**/main.ts"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/generated/"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
