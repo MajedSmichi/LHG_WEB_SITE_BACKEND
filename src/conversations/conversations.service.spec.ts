@@ -72,4 +72,54 @@ describe('ConversationsService', () => {
       expect(result).toEqual(updated);
     });
   });
+
+  describe('delete', () => {
+    it('should delete a conversation', async () => {
+      const conv = { id: 1, userId: 1 };
+      prisma.conversation.delete.mockResolvedValue(conv);
+
+      const result = await service.delete(1, 1);
+      expect(result).toEqual(conv);
+    });
+  });
+
+  describe('addMessage', () => {
+    it('should add a user message', async () => {
+      prisma.conversation.findFirstOrThrow.mockResolvedValue({ id: 1, userId: 1 });
+      const msg = { id: 1, conversationId: 1, role: 'user', question: 'hello', response: 'hi' };
+      prisma.conversationMessage = { create: jest.fn().mockResolvedValue(msg) };
+
+      const result = await service.addMessage(1, 1, 'user', 'hello', 'hi');
+      expect(result).toEqual(msg);
+    });
+
+    it('should increment questionCount for assistant role', async () => {
+      prisma.conversation.findFirstOrThrow.mockResolvedValue({ id: 1, userId: 1 });
+      prisma.conversationMessage = { create: jest.fn().mockResolvedValue({ id: 1, role: 'assistant' }) };
+      prisma.conversation.update.mockResolvedValue({});
+
+      await service.addMessage(1, 1, 'assistant', null, 'response');
+      expect(prisma.conversation.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 1 } }),
+      );
+    });
+  });
+
+  describe('updateTitle', () => {
+    it('should update title', async () => {
+      prisma.conversation.update.mockResolvedValue({ id: 1, title: 'New title' });
+      const result = await service.updateTitle(1, 1, 'New title');
+      expect(result).toEqual({ id: 1, title: 'New title' });
+    });
+  });
+
+  describe('togglePin', () => {
+    it('should toggle pin status', async () => {
+      prisma.conversation.findFirstOrThrow.mockResolvedValue({ id: 1, userId: 1, isPinned: false });
+      prisma.conversation.update.mockResolvedValue({ id: 1, isPinned: true });
+
+      const result = await service.togglePin(1, 1);
+      expect(result).toEqual({ id: 1, isPinned: true });
+    });
+  });
 });
